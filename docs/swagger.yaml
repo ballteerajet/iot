@@ -1,0 +1,300 @@
+basePath: /
+definitions:
+  controllers.ErrorResponse:
+    properties:
+      error:
+        example: invalid credentials
+        type: string
+    type: object
+  controllers.LoginRequest:
+    properties:
+      password:
+        example: admin123
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  controllers.LoginResponse:
+    properties:
+      api_key:
+        example: b3f1c9c1c4...
+        type: string
+      role:
+        example: admin
+        type: string
+    type: object
+  models.SensorData:
+    properties:
+      created_at:
+        type: string
+      humidity:
+        type: number
+      id:
+        type: integer
+      temp:
+        type: number
+    type: object
+  models.User:
+    properties:
+      api_key:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Role-based API with API Key Auth
+  title: Sensor API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login with username and password to get API Key
+      parameters:
+      - description: Login payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      summary: Login
+      tags:
+      - Auth
+  /sensor:
+    get:
+      description: Get all sensor data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.SensorData'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all sensor data
+      tags:
+      - Sensor
+    post:
+      consumes:
+      - application/json
+      description: Create new sensor data (user & admin)
+      parameters:
+      - description: Sensor data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SensorData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SensorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create sensor data
+      tags:
+      - Sensor
+  /sensor/{id}:
+    get:
+      description: Get sensor data by ID
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SensorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get sensor data by ID
+      tags:
+      - Sensor
+  /users:
+    get:
+      description: Admin get all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all users
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      description: Admin delete user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      description: Admin get user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by ID
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Admin update user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user
+      tags:
+      - Users
+  /users/bulk:
+    post:
+      consumes:
+      - application/json
+      description: Admin create users in bulk
+      parameters:
+      - description: Users
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.User'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create users (bulk)
+      tags:
+      - Users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: X-API-KEY
+    type: apiKey
+swagger: "2.0"
